@@ -639,4 +639,4 @@ Impacket           → https://github.com/fortra/impacket
 TTY upgrade guide  → https://wiki.zacheller.dev/pentest/privilege-escalation/spawning-a-tty-shell
 
 
-                  ⭐ ★ Happy hacking, Sumit. Stay sharp. ★
+                  ⭐ ★ Happy hacking,  Stay sharp. ★
